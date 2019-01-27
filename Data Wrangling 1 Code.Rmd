@@ -1,0 +1,113 @@
+---
+title: "Data Wrangling 1"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+>setwd("C:/Users/Tony/Dropbox/Data Science/R projects")
+```
+# loading libraries that will be needed
+
+```{r}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(data.table)
+```
+# reading file into rstudio
+```{r}
+refine_original <- read_excel("refine_original.xlsx")
+```
+# Taking a look at what we're working with
+```{r}
+View(refine_original)
+```
+# checking columns etc
+```{r}
+ls()
+```
+```{r}
+ colnames(refine_original)
+```
+#checking "company" column class
+```{r}
+class("company")
+```
+# using sub to call change with specific spellings of the companys
+```{r}
+refine_original$company <- sub("Phillips", "phillips", refine_original$company)
+ refine_original$company <- sub("philips", "phillips", refine_original$company)
+ refine_original$company <- sub("Phllips", "phillips", refine_original$company)
+ refine_original$company <- sub("phillps", "phillips", refine_original$company)
+ refine_original$company <- sub("fillips", "phillips", refine_original$company)
+ refine_original$company <- sub("phillipS", "phillips", refine_original$company)
+ refine_original$company <- sub("phllips", "phillips", refine_original$company)
+ refine_original$company <- sub("Akza", "akzo", refine_original$company)
+ refine_original$company <- sub("Akzo", "akzo", refine_original$company)
+ refine_original$company <- sub("AkZO", "akzo", refine_original$company)
+ refine_original$company <- sub("AKZO", "akzo", refine_original$company)
+ refine_original$company <- sub("AkzO", "akzo", refine_original$company)
+ refine_original$company <- sub("ak zo", "akzo", refine_original$company)
+ refine_original$company <- sub("unilver", "unilever", refine_original$company)
+ refine_original$company <- sub("Unilver", "unilever", refine_original$company)
+ refine_original$company <- sub("Unilever", "unilever", refine_original$company)
+ refine_original$company <- sub("Van Houten", "van houten", refine_original$company)
+ refine_original$company <- sub("van Houten", "van houten", refine_original$company)
+```
+
+# checking out separate structure
+```{r}
+?separate
+```
+#checking column names
+```{r}
+colnames(refine_original)
+```
+# separating "product code / number" column into two "product_code", and "product_number"
+```{r}
+refine_clean <- refine_original %>% separate(`Product code / number`, into=c("product_code", "Product_number"), sep = "-")
+View(refine_clean)
+```
+# using product code to add descriptive names
+```{r}
+refine_clean$product_category <- sub(pattern = "^p$", replacement = "Smartphone", x = sub("^x$", "Laptop", sub("^v$", "TV", sub("^q$", "Tablet", refine_clean$product_code))))
+```
+# Uniting columns to create one column- "full_address"
+```{r}
+refine_clean <- refine_clean %>% mutate(full_address = paste(address, city, country, sep = ","))
+```
+## creating new binary columns for the companys and products
+```{r}
+refine_clean <- mutate(refine_clean, company_philips = ifelse(company == "Philips", 1, 0))
+refine_clean <- mutate(refine_clean, company_azko = ifelse(company == "azko", 1, 0))
+refine_clean <- mutate(refine_clean, company_van_hauten = ifelse(company == "van hauten", 1, 0))
+refine_clean <- mutate(refine_clean, company_unilever = ifelse(company == "unilever", 1, 0))
+refine_clean <- mutate(refine_clean, product_smartphone = ifelse(product_category == "smartphone", 1, 0))
+refine_clean <- mutate(refine_clean, product_tv = ifelse(product_category == "tv", 1, 0))
+refine_clean <- mutate(refine_clean, product_laptop = ifelse(product_category == "laptop", 1, 0))
+refine_clean <- mutate(refine_clean, product_tablet = ifelse(product_category == "tablet", 1, 0))
+```
+# writing cleaned csv file
+```{r}
+write.csv(refine_clean, file = "refine_clean.csv")
+```
+
+
+
+
+
+
+
+
+
